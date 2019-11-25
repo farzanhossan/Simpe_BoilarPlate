@@ -4,7 +4,7 @@ const db = mysql2.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'Admin@123',
-    database: 'crm_db'
+    database: 'crm_v1'
 });
 
 db.connect((error: any)=>{

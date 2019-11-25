@@ -7,7 +7,7 @@ import CheckAuth from '../middleware/checkAuth';
 class UserRouter{
     public router: express.Router;
     userController = new UserController();
-    // CheckAuth = new CheckAuth();
+    CheckAuth = new CheckAuth().checkAuth;
 
 
     constructor(){
@@ -18,7 +18,14 @@ class UserRouter{
 
     routes(){
         try {
-             this.router.get('/',this.userController.getUsers);
+             this.router.get('/',this.CheckAuth ,this.userController.getUsers);
+             this.router.post('/login',this.userController.login);
+             this.router.post('/createRole',this.CheckAuth ,this.userController.createRole);
+             this.router.post('/createPermission',this.CheckAuth ,this.userController.createPermission);
+             this.router.post('/createRolePermission',this.CheckAuth ,this.userController.createRolePermission);
+
+
+
          } catch (error) {
             if (error) throw error;
         }

@@ -6,7 +6,7 @@ const connection = mysql.createPool({
   host     : 'localhost',
   user     : 'root',
   password : 'Admin@123',
-  database : 'crm_db'
+  database : 'crm_v1'
 });
 
 migration.init(connection, __dirname + '/migrations');

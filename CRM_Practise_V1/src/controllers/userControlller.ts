@@ -18,41 +18,42 @@ export class UserController {
             })
     }
 
-    // /// Super Admin Login
-    // async login (req: Request, res: Response, next: any) {
-    //     let {email, password } = req.body;
-    //     if(email == "" || password == ""){
-    //         res.status(400).json({
-    //             message : "Please Insert Email and Password"
-    //         })
-    //     }else{
-    //         let sql1 = 'select * from superAdmin where email = ?'
-    //         db.query(sql1, email,(err: any, result: any) =>{
-    //             if(err) throw err;
-    //             if(result == ""){
-    //                 return res.status(200).json({
-    //                     message: "Email Or Password Error"
-    //                 })
-    //             }
-    //             if(result[0].password == password){
-    //                 let superAdminId = {
-    //                     id : result[0].id
-    //                 }
-        
-    //                 let token = jwt.sign(superAdminId, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '6h' });
-    //                 return res.status(200).json({
-    //                     message: message,
-    //                     token: token
-    //                 })
-    //             }else{
-    //                 return res.status(400).json({
-    //                     message: "Password Doesn't Match"
-    //                 })
-    //             }
+/// User Login
+
+    async login(req: any, res: any, next: any){
+        let {email, password } = req.body;
+        if(email == "" || password == ""){
+            res.status(400).json({
+                message : "Please Insert Email and Password"
+            })
+        }else{
+            let sql = 'select email from users where email = ?'
+            db.query(sql,email,(err: any,result: any) => {
+                if(err) throw err;
+                if(result == ""){
+                    res.status(400).json({
+                        message : "Please Register"
+                    })
+                }else{
+                    let sql1 = 'select * from users where email = ?'
+                    let query =db.query(sql1, email,(err: any, result: any) =>{
+                        if(err) throw err;
+                        if(result[0].password == password){
+                            let userId = {
+                                id : result[0].id
+                            }
                 
-    //         })
-    //     }
-    // }
+                            let token = jwt.sign(userId, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '6h' });
+                            return res.status(200).json({
+                                message: "Login Successful",
+                                token: token
+                            })
+                        }
+                    })                    
+                }
+            })
+        }
+    }
 
     // /// Super Admin Password Change
     // async passwordChange (req: any, res: Response , next: any) {
@@ -112,116 +113,125 @@ export class UserController {
     // }
 
 
-    // /// Create Role
-    // async createRole(req: any, res: any, next: any){
-    //     let { role } = req.body;
-    //     if(role == ""){
-    //         return res.status(400).json({
-    //             message: "Please Fill up All Field"
-    //         })
-    //     }
-    //     let sql1 = `select role from roles where role = ${ db.escape(role) }`
-    //     db.query(sql1,role,(err:any, result: any)=>{
-    //         if (err) throw err;
-    //         if(result != ""){
-    //             return res.status(400).json({
-    //                 message: "Roles Already Exists"
-    //             })
-    //         }else{
-    //             let sql2 = `insert into roles set role = ${ db.escape(role)}`
-    //             db.query(sql2, (err: any, result: any)=>{
-    //                 if (err) throw err;
-    //                 return res.status(200).json({
-    //                     message: "Created Successfully"
-    //                 })
-    //             })
-    //         }
-    //     })
-    // }
+    /// Create Role
+    async createRole(req: any, res: any, next: any){
+        let tokenId = req.userData;
+        let { role } = req.body;
+        let sql = `select role_id from users where id = ?`
+        db.query(sql,tokenId ,(err:any, result: any)=>{
+            if(err) throw err;
+            if(result[0].role_id != 0){
+                return res.status(400).json({
+                    message: "Only Super-Admin Can Create Roles"
+                })
+            }
+            if(role == ""){
+                return res.status(400).json({
+                    message: "Please Fill up All Field"
+                })
+            }
+            let sql1 = `select role from roles where role = ${ db.escape(role) }`
+            db.query(sql1,role,(err:any, result: any)=>{
+                if (err) throw err;
+                if(result != ""){
+                    return res.status(400).json({
+                        message: "Roles Already Exists"
+                    })
+                }else{
+                    let sql2 = `insert into roles set role = ${ db.escape(role)}`
+                    db.query(sql2, (err: any, result: any)=>{
+                        if (err) throw err;
+                        return res.status(200).json({
+                            message: "Created Successfully"
+                        })
+                    })
+                }
+            })
+        })
+        
+    }
 
-    // /// Create Permission
-    // async createPermission(req: any, res: any, next: any){
-    //     let { permission_name } = req.body;
-    //     if(permission_name == ""){
-    //         return res.status(400).json({
-    //             message: "Please Fill up All Field"
-    //         })
-    //     }
-    //     let sql1 = `select permission_name from permissions where permission_name = ${ db.escape(permission_name) }`
-    //     db.query(sql1,db.escape(permission_name),(err:any, result: any)=>{
-    //         if (err) throw err;
-    //         if(result != ""){
-    //             return res.status(400).json({
-    //                 message: "Permission name Already Exists"
-    //             })
-    //         }else{
-    //             let sql2 = `insert into permissions set permission_name = ${ db.escape(permission_name) }`
-    //             db.query(sql2, (err: any, result: any)=>{
-    //                 if (err) throw err;
-    //                 return res.status(200).json({
-    //                     message: "Created Successfully"
-    //                 })
-    //             })
-    //         }
-    //     })
-    // }
+    /// Create Permission
+    async createPermission(req: any, res: any, next: any){
+        let tokenId = req.userData;
+        let sql = `select role_id from users where id = ?`
+        db.query(sql, tokenId, (err:any , result: any)=>{
+            if (err) throw err;
+            if(result[0].role_id != 0){
+                return res.status(400).json({
+                    message: "Only Super-Admin Can Create Roles"
+                })
+            }
+        })
+        let { permission_name } = req.body;
+        if(permission_name == ""){
+            return res.status(400).json({
+                message: "Please Fill up All Field"
+            })
+        }
+        let sql1 = `select permission_name from permissions where permission_name = ${ db.escape(permission_name) }`
+        db.query(sql1,db.escape(permission_name),(err:any, result: any)=>{
+            if (err) throw err;
+            if(result != ""){
+                return res.status(400).json({
+                    message: "Permission name Already Exists"
+                })
+            }else{
+                let sql2 = `insert into permissions set permission_name = ${ db.escape(permission_name) }`
+                db.query(sql2, (err: any, result: any)=>{
+                    if (err) throw err;
+                    return res.status(200).json({
+                        message: "Created Successfully"
+                    })
+                })
+            }
+        })
+    }
 
-    // /// Create Users
-    // async createUser(req: any, res: any, next: any){
-    //     let { name , email , password , phone_number , role_id , permission_id} = req.body;
-    //     if(name == "" || email == "" || password == "" || phone_number == "" || role_id == ""){
-    //         return res.status(400).json({
-    //             message: "Please Fill up All Field"
-    //         })
-    //     }
-    //     let UserDetails = {
-    //         name : name, 
-    //         email: email, 
-    //         password: password, 
-    //         phone_number: phone_number,
-    //         role_id : role_id
-    //     }
-    //     let sql1 = `select email from users where email = ${ db.escape(email) }`
-    //     db.query(sql1,(err: any, result: any) =>{
-    //         if (err) throw err;
-    //         if(result != ""){
-    //             return res.status(400).json({
-    //                 message: "Email Already Exists"
-    //             })
-    //         }
-    //         let sql4 = `select id from roles where id = ${ db.escape(role_id) }`
-    //         db.query(sql4, (err: any, result: any )=>{
-    //             if (err) throw err
-    //             if(result == ""){
-    //                 return res.status(400).json({
-    //                     message: "Roles not Exists"
-    //                 })
-    //             }
-    //         })
-    //         let sql2 = `insert into users set ?`
-    //         db.query(sql2, UserDetails , (err: any, result: any)=>{
-    //             if(err) throw err;
+    /// Create Role-Permission
 
-    //             let sql5 = `select role_id from role_permission where role_id = ${ db.escape(role_id) }`
-    //             db.query(sql5, (err: any, result: any )=>{
-    //                 if (err) throw err
-    //                 if(result == ""){
-    //                     let sql3 = `insert into role_permission set ?`
-    //                     for(let i =0 ;i< permission_id.length ; i++){
-    //                         let Permissions = {
-    //                             role_id : role_id,
-    //                             permission_id : permission_id[i]
-    //                         }
-    //                         db.query(sql3, Permissions)
-    //                     }
-    //                 }
-    //             })
-    //             return res.status(200).json({
-    //                 message: "Registered Successfully"
-    //             })
-                
-    //         })
-    //     })
-    // }
+    async createRolePermission(req: any, res: any, next: any){
+        let tokenId = req.userData;
+        let sql4 = `select role_id from users where id = ?`
+        db.query(sql4, tokenId, (err:any , result: any)=>{
+            if (err) throw err;
+            if(result[0].role_id != 0){
+                return res.status(400).json({
+                    message: "Only Super-Admin Can Create Roles"
+                })
+            }
+        })
+        let {role_id , permission_id} = req.body;
+        if(role_id == "" || permission_id == ""){
+            return res.status(400).json({
+                message: "Please Fill up All Field"
+            })
+        }
+        let sql3 = `select * from role_permission where role_id = ${ role_id }`
+        db.query(sql3, (err:any, result:any)=>{
+            if (err) throw err;
+            if(result != ""){
+                return res.status(400).json({
+                    message: "Roles - Permissions Already Exists"
+                })
+            }
+        })
+        for await (let item of permission_id){
+            let sql1 = `INSERT into role_permission
+                    SET role_id = ( SELECT id 
+                                    FROM roles
+                                    WHERE id = ${ role_id } ),
+                    permission_id = ( SELECT id
+                                    FROM permissions
+                                    WHERE id = ${ item })`
+            db.query(sql1 , (err: any, result: any)=>{
+                console.log("1st");
+                if (err) throw err;
+            })
+            console.log(item);
+        }
+
+        console.log("2nd");
+    }
 
 }
