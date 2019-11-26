@@ -20,12 +20,10 @@ class UserRouter{
         try {
              this.router.get('/',this.CheckAuth ,this.userController.getUsers);
              this.router.post('/login',this.userController.login);
+             this.router.post('/createUser',this.CheckAuth ,this.userController.createUser);
              this.router.post('/createRole',this.CheckAuth ,this.userController.createRole);
              this.router.post('/createPermission',this.CheckAuth ,this.userController.createPermission);
              this.router.post('/createRolePermission',this.CheckAuth ,this.userController.createRolePermission);
-
-
-
          } catch (error) {
             if (error) throw error;
         }

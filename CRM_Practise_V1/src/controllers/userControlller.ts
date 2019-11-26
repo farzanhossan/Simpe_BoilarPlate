@@ -6,18 +6,6 @@ let jwt = require('jsonwebtoken');
 
 export class UserController {
 
-
-    /// Get All Users
-    async getUsers(req: Request, res: Response){
-        let sql1 = 'select * from users'
-            db.query(sql1,(err: any, result: any) =>{
-                if(err) throw err;
-                return res.status(200).json({
-                    result
-                })
-            })
-    }
-
 /// User Login
 
     async login(req: any, res: any, next: any){
@@ -53,6 +41,74 @@ export class UserController {
                 }
             })
         }
+    }
+
+    /// Get All Users
+    async getUsers(req: any, res: any){
+        let tokenId = req.userData;
+        let sql = `select permission_name from permissions where
+                    id = (select permission_id from role_permission where 
+                        role_id = (select role_id from users where id = ?) And permission_id = 4 )`
+        db.query(sql, tokenId, (err:any , result: any)=>{
+            if (err) throw err;
+            console.log("SQL //////////" , sql);
+            console.log("result///////////" , result);
+            if(result == ""){
+                return res.status(400).json({
+                    message: "You are not eligible"
+                })
+            }
+            let sql1 = 'select name , email , phone_number ,role_id from users'
+            db.query(sql1, (err:any , result: any)=>{
+                if(err) throw err;
+                return res.status(200).json({
+                    result
+                })
+            })
+        })       
+    }
+
+    /// Create Users
+
+    async createUser(req: any, res: any, next: any){
+        let {name , email , password , phone_number , role_id} = req.body;
+
+        let tokenId = req.userData;
+        let sql = `select permission_name from permissions where
+                    id = (select permission_id from role_permission where 
+                        role_id = (select role_id from users where id = ?) And permission_id = 4 )`
+        db.query(sql, tokenId, (err:any , result: any)=>{
+            if (err) throw err;
+            if(result == ""){
+                return res.status(400).json({
+                    message: "You are not eligible"
+                })
+            }
+            let userDetails = {
+                name: name,
+                email: email,
+                password: password,
+                phone_number: phone_number,
+                role_id: role_id
+            }
+            let sql2 = 'select email from users where email=?'
+            db.query(sql2, email , (err:any, result:any)=>{
+                if(err) throw err;
+                if(result !=""){
+                    return res.status(200).json({
+                        message: "Email Already Exists"
+                    })
+                }
+
+                let sql1 = 'insert into users set ?'
+                db.query(sql1,userDetails, (err:any , result: any)=>{
+                    if(err) throw err;
+                    return res.status(200).json({
+                        message: "User Registered Successfully"
+                    })
+                })
+            })
+        })     
     }
 
     // /// Super Admin Password Change
@@ -225,13 +281,11 @@ export class UserController {
                                     FROM permissions
                                     WHERE id = ${ item })`
             db.query(sql1 , (err: any, result: any)=>{
-                console.log("1st");
                 if (err) throw err;
+                return res.status(200).json({
+                    message: "Role - Permission Succcessfully Created"
+                })
             })
-            console.log(item);
         }
-
-        console.log("2nd");
     }
-
 }
