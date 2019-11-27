@@ -2,6 +2,7 @@
 import express from 'express'
 import { UserController } from '../controllers/userControlller'
 import CheckAuth from '../middleware/checkAuth';
+import { request } from 'http';
 
 
 class UserRouter{
@@ -18,12 +19,12 @@ class UserRouter{
 
     routes(){
         try {
-             this.router.get('/',this.CheckAuth ,this.userController.getUsers);
-             this.router.post('/login',this.userController.login);
-             this.router.post('/createUser',this.CheckAuth ,this.userController.createUser);
-             this.router.post('/createRole',this.CheckAuth ,this.userController.createRole);
-             this.router.post('/createPermission',this.CheckAuth ,this.userController.createPermission);
-             this.router.post('/createRolePermission',this.CheckAuth ,this.userController.createRolePermission);
+             this.router.get('/', this.CheckAuth('view_user'),this.userController.getUsers);
+             this.router.post('/login', this.userController.login);
+             this.router.post('/createRole', this.CheckAuth('create_role') ,this.userController.createRole);
+             this.router.post('/createPermission',this.CheckAuth('create_role') ,this.userController.createPermission);
+             this.router.post('/createRolePermission',this.CheckAuth('create_role') ,this.userController.createRolePermission);
+             this.router.post('/createUser', this.CheckAuth('create_user') ,this.userController.createUser);
          } catch (error) {
             if (error) throw error;
         }

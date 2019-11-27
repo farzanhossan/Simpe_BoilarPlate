@@ -1,5 +1,6 @@
 import { Request , Response, Express} from 'express'
 import db from '../../connection';
+import fetch from 'node-fetch';
 require('dotenv').config();
 let jwt = require('jsonwebtoken');
 
@@ -45,27 +46,13 @@ export class UserController {
 
     /// Get All Users
     async getUsers(req: any, res: any){
-        let tokenId = req.userData;
-        let sql = `select permission_name from permissions where
-                    id = (select permission_id from role_permission where 
-                        role_id = (select role_id from users where id = ?) And permission_id = 4 )`
-        db.query(sql, tokenId, (err:any , result: any)=>{
-            if (err) throw err;
-            console.log("SQL //////////" , sql);
-            console.log("result///////////" , result);
-            if(result == ""){
-                return res.status(400).json({
-                    message: "You are not eligible"
-                })
-            }
-            let sql1 = 'select name , email , phone_number ,role_id from users'
+        let sql1 = 'select name , email , phone_number ,role_id from users'
             db.query(sql1, (err:any , result: any)=>{
                 if(err) throw err;
                 return res.status(200).json({
                     result
                 })
-            })
-        })       
+            })     
     }
 
     /// Create Users
@@ -74,17 +61,7 @@ export class UserController {
         let {name , email , password , phone_number , role_id} = req.body;
 
         let tokenId = req.userData;
-        let sql = `select permission_name from permissions where
-                    id = (select permission_id from role_permission where 
-                        role_id = (select role_id from users where id = ?) And permission_id = 4 )`
-        db.query(sql, tokenId, (err:any , result: any)=>{
-            if (err) throw err;
-            if(result == ""){
-                return res.status(400).json({
-                    message: "You are not eligible"
-                })
-            }
-            let userDetails = {
+        let userDetails = {
                 name: name,
                 email: email,
                 password: password,
@@ -107,102 +84,33 @@ export class UserController {
                         message: "User Registered Successfully"
                     })
                 })
-            })
-        })     
+            })  
     }
-
-    // /// Super Admin Password Change
-    // async passwordChange (req: any, res: Response , next: any) {
-    //     let { oldPassword , newPassword, retypePassword } = req.body;
-    //     if(oldPassword == "" || newPassword == "" || retypePassword == ""){
-    //         res.status(400).json({message : "Please Fill Up all Field"})
-    //     }else{
-    //         let tokenId = req.userData;
-    //         let sql1 = `select password from superAdmin where id = ${ tokenId }`
-    //         db.query(sql1,(err: any, result: any) =>{
-    //             if(err) throw err;
-    //             if(result[0].password != oldPassword){
-    //                 return res.status(400).json({message : "Old Password Doesn't Match" })
-    //             }
-                    
-    //             if(newPassword != retypePassword){
-    //                 return res.status(400).json({message : "Retype Password Doesn't Match to New Password" })
-    //             }else{
-    //                 let sql2 =  `update superAdmin set password = ${ newPassword } where id = ${ tokenId }`
-    //                 db.query(sql2,(err: any, result: any)=>{
-    //                     return res.status(200).json({message : "Password Change Successfully", result : result })
-    //                 })
-    //             }
-                
-    //         })
-    //     }
-
-    // }
-
-    // /// Super Admin Email Change
-    // async emailChange (req: any, res: Response , next: any) {
-    //     let { password , email } = req.body;
-    //     if(password == "" || email == ""){
-    //         res.status(400).json({message : "Please Fill Up all Field"})
-    //     }else{
-    //         let tokenId = req.userData;
-    //         let sql1 = `select password from superAdmin where id = ${ tokenId }`
-    //         db.query(sql1,(err: any, result: any) =>{
-    //             if(err) throw err;
-    //             if(result[0].password != password){
-    //                 return res.status(400).json({message : "Password Doesn't Match" })
-    //             }  
-    //             let sql2 =  `update superAdmin set email = ${ db.escape(email) } where id = ${ tokenId }`
-    //             console.log(email);
-    //             console.log(tokenId);
-    //             console.log(sql2);
-    //             db.query(sql2, (err: any, result: any)=>{
-    //                 if (err) throw err;
-    //                 res.status(200).json({
-    //                     result: result
-    //                 })
-    //             })
-                
-    //         })
-    //     }
-
-    // }
-
-
     /// Create Role
     async createRole(req: any, res: any, next: any){
         let tokenId = req.userData;
         let { role } = req.body;
-        let sql = `select role_id from users where id = ?`
-        db.query(sql,tokenId ,(err:any, result: any)=>{
-            if(err) throw err;
-            if(result[0].role_id != 0){
-                return res.status(400).json({
-                    message: "Only Super-Admin Can Create Roles"
-                })
-            }
-            if(role == ""){
-                return res.status(400).json({
-                    message: "Please Fill up All Field"
-                })
-            }
-            let sql1 = `select role from roles where role = ${ db.escape(role) }`
-            db.query(sql1,role,(err:any, result: any)=>{
-                if (err) throw err;
-                if(result != ""){
-                    return res.status(400).json({
-                        message: "Roles Already Exists"
-                    })
-                }else{
-                    let sql2 = `insert into roles set role = ${ db.escape(role)}`
-                    db.query(sql2, (err: any, result: any)=>{
-                        if (err) throw err;
-                        return res.status(200).json({
-                            message: "Created Successfully"
-                        })
-                    })
-                }
+        if(role == ""){
+            return res.status(400).json({
+                message: "Please Fill up All Field"
             })
+        }
+        let sql1 = `select role from roles where role = ${ db.escape(role) }`
+        db.query(sql1,role,(err:any, result: any)=>{
+            if (err) throw err;
+            if(result != ""){
+                return res.status(400).json({
+                    message: "Roles Already Exists"
+                })
+            }else{
+                let sql2 = `insert into roles set role = ${ db.escape(role)}`
+                db.query(sql2, (err: any, result: any)=>{
+                    if (err) throw err;
+                    return res.status(200).json({
+                        message: "Created Successfully"
+                    })
+                })
+            }
         })
         
     }
@@ -248,15 +156,6 @@ export class UserController {
 
     async createRolePermission(req: any, res: any, next: any){
         let tokenId = req.userData;
-        let sql4 = `select role_id from users where id = ?`
-        db.query(sql4, tokenId, (err:any , result: any)=>{
-            if (err) throw err;
-            if(result[0].role_id != 0){
-                return res.status(400).json({
-                    message: "Only Super-Admin Can Create Roles"
-                })
-            }
-        })
         let {role_id , permission_id} = req.body;
         if(role_id == "" || permission_id == ""){
             return res.status(400).json({
@@ -280,12 +179,12 @@ export class UserController {
                     permission_id = ( SELECT id
                                     FROM permissions
                                     WHERE id = ${ item })`
-            db.query(sql1 , (err: any, result: any)=>{
+            const query = db.query(sql1 , (err: any, result: any)=>{
                 if (err) throw err;
-                return res.status(200).json({
-                    message: "Role - Permission Succcessfully Created"
-                })
             })
+            const queryResult = await fetch(query);
+            console.log("//////////////////////////");
         }
+        console.log('object');
     }
 }
