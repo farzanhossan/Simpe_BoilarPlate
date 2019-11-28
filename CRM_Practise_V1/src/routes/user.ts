@@ -25,6 +25,8 @@ class UserRouter{
              this.router.post('/createPermission',this.CheckAuth('create_role') ,this.userController.createPermission);
              this.router.post('/createRolePermission',this.CheckAuth('create_role') ,this.userController.createRolePermission);
              this.router.post('/createUser', this.CheckAuth('create_user') ,this.userController.createUser);
+             this.router.get('/getRolePermission', this.CheckAuth('view_role') ,this.userController.getRolePermission);
+             this.router.get('/getRole', this.CheckAuth('view_role') ,this.userController.getRole);
          } catch (error) {
             if (error) throw error;
         }

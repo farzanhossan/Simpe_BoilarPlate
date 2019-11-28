@@ -114,27 +114,29 @@ export class UserController {
         })
         
     }
+    /// Get role
+    async getRole(req: any,res: any, next: any){
+        let tokenId = req.userData;
+        let sql = 'select * from roles'
+        db.query(sql , (err:any , result:any)=>{
+            if (err) throw err;
+            return res.status(200).json({
+                result
+            })
+        })
+    }
 
     /// Create Permission
     async createPermission(req: any, res: any, next: any){
         let tokenId = req.userData;
-        let sql = `select role_id from users where id = ?`
-        db.query(sql, tokenId, (err:any , result: any)=>{
-            if (err) throw err;
-            if(result[0].role_id != 0){
-                return res.status(400).json({
-                    message: "Only Super-Admin Can Create Roles"
-                })
-            }
-        })
         let { permission_name } = req.body;
         if(permission_name == ""){
             return res.status(400).json({
                 message: "Please Fill up All Field"
             })
         }
-        let sql1 = `select permission_name from permissions where permission_name = ${ db.escape(permission_name) }`
-        db.query(sql1,db.escape(permission_name),(err:any, result: any)=>{
+        let sql1 = `select permission_name from permissions where permission_name = ?`
+        db.query(sql1,permission_name,(err:any, result: any)=>{
             if (err) throw err;
             if(result != ""){
                 return res.status(400).json({
@@ -152,6 +154,18 @@ export class UserController {
         })
     }
 
+    /// Get Role-permission
+    async getRolePermission(req: any,res: any, next: any){
+        let tokenId = req.userData;
+        let sql = 'select * from role_permission'
+        db.query(sql , (err:any , result:any)=>{
+            if (err) throw err;
+            return res.status(200).json({
+                result
+            })
+        })
+    }
+
     /// Create Role-Permission
 
     async createRolePermission(req: any, res: any, next: any){
@@ -162,29 +176,16 @@ export class UserController {
                 message: "Please Fill up All Field"
             })
         }
-        let sql3 = `select * from role_permission where role_id = ${ role_id }`
-        db.query(sql3, (err:any, result:any)=>{
-            if (err) throw err;
-            if(result != ""){
-                return res.status(400).json({
-                    message: "Roles - Permissions Already Exists"
-                })
-            }
-        })
-        for await (let item of permission_id){
-            let sql1 = `INSERT into role_permission
-                    SET role_id = ( SELECT id 
-                                    FROM roles
-                                    WHERE id = ${ role_id } ),
-                    permission_id = ( SELECT id
-                                    FROM permissions
-                                    WHERE id = ${ item })`
-            const query = db.query(sql1 , (err: any, result: any)=>{
-                if (err) throw err;
-            })
-            const queryResult = await fetch(query);
-            console.log("//////////////////////////");
+        let values: any = []
+        for(let i = 0;i<permission_id.length;i++){
+            values.push([role_id,db.escape(permission_id[i])])
         }
-        console.log('object');
+        let sql1 = `INSERT into role_permission (role_id , permission_id) VALUES ?` 
+        db.query(sql1, [values], function(err: any) {
+            if (err) throw err;
+            return res.status(200).json({
+                message: "Role-Permission Successfully created"
+            })
+        });
     }
 }
