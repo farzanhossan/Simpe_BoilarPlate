@@ -3,6 +3,8 @@ import { promises, resolve } from 'dns';
 import bodyParser from 'body-parser';
 
 import userRoutes from './routes/user';
+import customerRoutes from './routes/customer';
+import serviceRoutes from './routes/service';
 import { rejects } from 'assert';
 import morgan from 'morgan';
 
@@ -21,6 +23,8 @@ class App{
 
     public routes(): void{
         this.app.use('/api/v1/users', userRoutes);
+        this.app.use('/api/v1/customers', customerRoutes);
+        this.app.use('/api/v1/services', serviceRoutes);
     }
 
     public errorHandeller(): void{

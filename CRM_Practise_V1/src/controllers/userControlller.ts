@@ -154,6 +154,18 @@ export class UserController {
         })
     }
 
+    /// Get permission
+    async getPermission(req: any,res: any, next: any){
+        let tokenId = req.userData;
+        let sql = 'select * from permissions'
+        db.query(sql , (err:any , result:any)=>{
+            if (err) throw err;
+            return res.status(200).json({
+                result
+            })
+        })
+    }
+
     /// Get Role-permission
     async getRolePermission(req: any,res: any, next: any){
         let tokenId = req.userData;

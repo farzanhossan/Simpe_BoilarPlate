@@ -23,6 +23,7 @@ class UserRouter{
              this.router.post('/login', this.userController.login);
              this.router.post('/createRole', this.CheckAuth('create_role') ,this.userController.createRole);
              this.router.post('/createPermission',this.CheckAuth('create_role') ,this.userController.createPermission);
+             this.router.get('/getPermission',this.CheckAuth('view_role') ,this.userController.getPermission);
              this.router.post('/createRolePermission',this.CheckAuth('create_role') ,this.userController.createRolePermission);
              this.router.post('/createUser', this.CheckAuth('create_user') ,this.userController.createUser);
              this.router.get('/getRolePermission', this.CheckAuth('view_role') ,this.userController.getRolePermission);
