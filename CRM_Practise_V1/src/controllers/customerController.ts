@@ -1,6 +1,7 @@
 import { Request , Response, Express} from 'express'
 import db from '../../connection';
 import nodemailer from 'nodemailer';
+import { O_NOFOLLOW } from 'constants';
 require('dotenv').config();
 let jwt = require('jsonwebtoken');
 
@@ -131,66 +132,73 @@ export class CustomerController {
 
     async cost(req: any , res: any , next : any){
         let {customer_id , discount , monthly_pay } = req.body;
-        let sql2 = `SELECT service_cost FROM services where id = (select service_id from customers where id = ?)`
-        db.query(sql2, customer_id , (err:any, result:any)=>{
+        let costDetails = {
+            customer_id: customer_id,
+            discount: discount,
+            monthly_pay: monthly_pay,
+            created_at: new Date()
+        }
+        let sql = `select email from customers where id = ?`
+        db.query(sql,customer_id,(err: any, result: any)=>{
             if(err) throw err;
-            let due = (result[0].service_cost - (monthly_pay- (monthly_pay * (discount/100))))
-            
-            let costDetails = {
-                customer_id: customer_id,
-                discount: discount,
-                monthly_pay: monthly_pay,
-                due_amount: due
-            }
-
-            let sql1 = 'insert into cost_calculation set ?'
-            db.query(sql1,costDetails, (err:any , result: any)=>{
-                if(err) throw err;
-                sql2 = 'select email from customers where id = ?'
-                db.query(sql2, customer_id, (err: any, result: any)=>{
-                    if(err) throw err;
-                    let email = result[0].email;
-                    let transporter = nodemailer.createTransport({
-                        host: 'smtp.mailtrap.io',
-                        port: 587,
-                        secure: false, // true for 465, false for other ports
-                        auth: {
-                            user: 'c6d695b3f1d508', // generated ethereal user
-                            pass: '816ed91f9e4e83'  // generated ethereal password
-                        },
-                        tls:{
-                        rejectUnauthorized:false
-                        }
-                    });
-            
-                    // setup email data with unicode symbols
-                    let mailOptions = {
-                        from: '"Sheba Technology" <sheba@gmail.com>',
-                        to: email,
-                        subject: 'Payment',
-                        text: `Your Payment Slip
-                            paid : ${ monthly_pay },
-                            due: ${ due }
-                        `
-                    };
-            
-                    // send mail with defined transport object
-                    transporter.sendMail(mailOptions, (error: any, info: any) => {
-                        if (error) {
-                            return console.log(error);
-                        }
-                        return res.status(200).json({
-                            message: "Cost-Calculation  Successful",
-                            info: info
-                        })
-                    });
-
-                })
-                
+            let email = result[0].email;
+            let sql1 = `insert into cost_calculation set ?`
+            db.query(sql1, costDetails,(err: any, result: any)=>{
+                if (err) throw err;
+                let transporter = nodemailer.createTransport({
+                    host: 'smtp.mailtrap.io',
+                    port: 587,
+                    secure: false, // true for 465, false for other ports
+                    auth: {
+                        user: 'c6d695b3f1d508', // generated ethereal user
+                        pass: '816ed91f9e4e83'  // generated ethereal password
+                    },
+                    tls:{
+                    rejectUnauthorized:false
+                    }
+                });
+        
+                // setup email data with unicode symbols
+                let mailOptions = {
+                    from: '"Sheba Technology" <sheba@gmail.com>',
+                    to: email,
+                    subject: 'Payment',
+                    text: `Your Payment Slip
+                        paid : ${ monthly_pay }
+                    `
+                };
+        
+                // send mail with defined transport object
+                transporter.sendMail(mailOptions, (error: any, info: any) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    return res.status(200).json({
+                        message: "Cost-Calculation  Successful",
+                        info: info
+                    })
+                });
             })
-        })  
+        })
     }
-    
+
+    async customerCommunication(req: any, res: any, next: any){
+        let {customer_id , message } = req.body;
+        let sql = `INSERT INTO customer_communication SET  ?`;
+        let communicationDetails = {
+            customer_id: customer_id,
+            message: message
+        }
+
+        db.query(sql , communicationDetails , (err: any ,result: any)=>{
+            if (err) throw err;
+            return res.status(200).json({
+                message: 'Inserted Successfully',
+                result : result
+            })
+        })
+    }
+
 }
 
 

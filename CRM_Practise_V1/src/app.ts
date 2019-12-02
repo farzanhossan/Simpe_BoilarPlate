@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import userRoutes from './routes/user';
 import customerRoutes from './routes/customer';
 import serviceRoutes from './routes/service';
+import packageRoutes from './routes/package';
 import { rejects } from 'assert';
 import morgan from 'morgan';
 
@@ -25,6 +26,7 @@ class App{
         this.app.use('/api/v1/users', userRoutes);
         this.app.use('/api/v1/customers', customerRoutes);
         this.app.use('/api/v1/services', serviceRoutes);
+        this.app.use('/api/v1/packages', packageRoutes);
     }
 
     public errorHandeller(): void{

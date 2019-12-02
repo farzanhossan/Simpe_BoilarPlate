@@ -19,13 +19,11 @@ export class ServiceController {
     }
 
     async createServices(req: any, res: any, next: any){
-        let {name , service_cost, monthly_subscription } = req.body;
+        let {name} = req.body;
 
         let tokenId = req.userData;
         let serviceDetails = {
-                name: name,
-                service_cost: service_cost,
-                monthly_subscription: monthly_subscription
+                name: name
             }
             let sql2 = 'select name from services where name =?'
             db.query(sql2, name , (err:any, result:any)=>{
@@ -48,12 +46,10 @@ export class ServiceController {
 
     async updateServices(req: any , res: any , next: any){
         let service_id = req.params.service_id;
-        let {name ,service_cost, monthly_subscription } = req.body;
+        let {name} = req.body;
         let sql = `UPDATE services SET  ? where id = ${ service_id }`;
         let serviceDetails = {
-            name: name,
-            service_cost: service_cost,
-            monthly_subscription: monthly_subscription
+            name: name
         }
 
         db.query(sql , serviceDetails , (err: any ,result: any)=>{

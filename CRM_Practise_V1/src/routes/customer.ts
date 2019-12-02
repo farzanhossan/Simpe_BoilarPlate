@@ -24,6 +24,7 @@ class CustomerRouter{
              this.router.put('/updateCustomer/:customer_id', this.CheckAuth('update_customer'),this.customerController.updateCustomers);
              this.router.delete('/deleteCustomer/:customer_id', this.CheckAuth('delete_customer'),this.customerController.deleteCustomers);
              this.router.post('/cost', this.CheckAuth('create_cost'),this.customerController.cost);
+             this.router.post('/communication', this.CheckAuth('create_cost'),this.customerController.customerCommunication);
              
          } catch (error) {
             if (error) throw error;
