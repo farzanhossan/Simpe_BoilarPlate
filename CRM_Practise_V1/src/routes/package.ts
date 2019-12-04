@@ -5,7 +5,7 @@ import CheckAuth from '../middleware/checkAuth';
 import { request } from 'http';
 
 
-class ServiceRouter{
+class PackageRouter{
     public router: express.Router;
     packageController = new PackageController();
     CheckAuth = new CheckAuth().checkAuth;
@@ -32,5 +32,5 @@ class ServiceRouter{
 
 }
 
-const serviceRouter = new ServiceRouter();
-export default serviceRouter.router;
+const packageRouter = new PackageRouter();
+export default packageRouter.router;

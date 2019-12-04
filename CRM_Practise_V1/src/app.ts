@@ -6,6 +6,8 @@ import userRoutes from './routes/user';
 import customerRoutes from './routes/customer';
 import serviceRoutes from './routes/service';
 import packageRoutes from './routes/package';
+import customerServiceRoutes from './routes/customerService';
+import billingRoutes from './routes/billing';
 import { rejects } from 'assert';
 import morgan from 'morgan';
 
@@ -27,6 +29,8 @@ class App{
         this.app.use('/api/v1/customers', customerRoutes);
         this.app.use('/api/v1/services', serviceRoutes);
         this.app.use('/api/v1/packages', packageRoutes);
+        this.app.use('/api/v1/customerServices', customerServiceRoutes);
+        this.app.use('/api/v1/billings', billingRoutes);
     }
 
     public errorHandeller(): void{
